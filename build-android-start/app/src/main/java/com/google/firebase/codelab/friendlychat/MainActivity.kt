@@ -42,7 +42,10 @@ import com.google.firebase.storage.ktx.storage
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: LinearLayoutManager
+
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseDatabase
+    private lateinit var adapter: FriendlyMessageAdapter
 
     private val openDocument = registerForActivityResult(MyOpenDocumentContract()) { uri ->
         onImageSelected(uri)
@@ -78,8 +81,32 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // This code adds all existing messages from Realtime Database and then
+        // listens for new child entries under the messages path in your Firebase Realtime Database.
+        // It adds a new element to the UI for each message
+
         // Initialize Realtime Database and FirebaseRecyclerAdapter
         // TODO: implement
+        db = Firebase.database
+        val messagesRef = db.reference.child(MESSAGES_CHILD)
+
+        // The FirebaseRecyclerAdapter class and options come from the FirebaseUI library
+        // See: https://github.com/firebase/FirebaseUI-Android
+        val options = FirebaseRecyclerOptions.Builder<FriendlyMessage>()
+            .setQuery(messagesRef, FriendlyMessage::class.java)
+            .build()
+        adapter = FriendlyMessageAdapter(options, getUserName())
+        binding.progressBar.visibility = ProgressBar.INVISIBLE
+        manager = LinearLayoutManager(this)
+        manager.stackFromEnd = true
+        binding.messageRecyclerView.layoutManager = manager
+        binding.messageRecyclerView.adapter = adapter
+
+        // scroll down when a new messages arrives
+        adapter.registerAdapterDataObserver(
+            MyScrollToBottomObserver(binding.messageRecyclerView, adapter, manager)
+        )
+
 
         // Disable the send button when there's no text in the input field
         // See MyButtonObserver for details
@@ -106,11 +133,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     public override fun onPause() {
+        adapter.stopListening()
         super.onPause()
     }
 
     public override fun onResume() {
         super.onResume()
+        adapter.startListening()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -149,7 +178,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getUserName(): String? {
         val user = auth.currentUser
-        return if (user != null)  user.displayName else ANONYMOUS
+        return if (user != null) user.displayName else ANONYMOUS
     }
 
     companion object {
