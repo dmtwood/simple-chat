@@ -169,11 +169,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun signOut() {
         // TODO: implement
+        AuthUI.getInstance().signOut()
+        startActivity(Intent(this, SignInActivity::class.java))
+        finish()
     }
 
     private fun getPhotoUrl(): String? {
         val user = auth.currentUser
-        return user?.photoUrl.toString()
+        return user?.photoUrl?.toString()
     }
 
     private fun getUserName(): String? {
