@@ -42,7 +42,7 @@ import com.google.firebase.storage.ktx.storage
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: LinearLayoutManager
-
+    // Firebase instance variables
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseDatabase
     private lateinit var adapter: FriendlyMessageAdapter
@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         onImageSelected(uri)
     }
 
-    // TODO: implement Firebase instance variables
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
